@@ -1,0 +1,200 @@
+openapi: 3.0.3
+info:
+  description: A simple FastAPI-based Task Manager with JWT authentication.
+  title: Task Manager API
+  version: 1.0.0
+servers:
+- description: Local development server
+  url: http://localhost:8000
+paths:
+  /register:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+          description: User created
+      summary: Register a new user
+  /login:
+    post:
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/_login_post_request'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: Access token
+      summary: Login and get access token
+  /tasks:
+    get:
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Task'
+                type: array
+          description: List of tasks
+      security:
+      - BearerAuth: []
+      summary: Get list of tasks
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: Task created
+      security:
+      - BearerAuth: []
+      summary: Create a task
+  /tasks/{task_id}:
+    delete:
+      parameters:
+      - explode: false
+        in: path
+        name: task_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      responses:
+        "200":
+          description: Task deleted
+      security:
+      - BearerAuth: []
+      summary: Delete a task
+    put:
+      parameters:
+      - explode: false
+        in: path
+        name: task_id
+        required: true
+        schema:
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+          description: Task updated
+      security:
+      - BearerAuth: []
+      summary: Update a task
+components:
+  schemas:
+    UserCreate:
+      example:
+        password: password
+        username: username
+      properties:
+        username:
+          title: username
+          type: string
+        password:
+          title: password
+          type: string
+      required:
+      - password
+      - username
+      title: UserCreate
+      type: object
+    UserOut:
+      example:
+        id: 0
+        username: username
+      properties:
+        id:
+          title: id
+          type: integer
+        username:
+          title: username
+          type: string
+      title: UserOut
+      type: object
+    Token:
+      example:
+        access_token: access_token
+        token_type: token_type
+      properties:
+        access_token:
+          title: access_token
+          type: string
+        token_type:
+          title: token_type
+          type: string
+      title: Token
+      type: object
+    Task:
+      example:
+        id: 0
+        title: title
+        is_completed: true
+      properties:
+        id:
+          title: id
+          type: integer
+        title:
+          title: title
+          type: string
+        is_completed:
+          title: is_completed
+          type: boolean
+      title: Task
+      type: object
+    TaskCreate:
+      example:
+        title: title
+      properties:
+        title:
+          title: title
+          type: string
+      required:
+      - title
+      title: TaskCreate
+      type: object
+    _login_post_request:
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+      - password
+      - username
+      type: object
+  securitySchemes:
+    BearerAuth:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
