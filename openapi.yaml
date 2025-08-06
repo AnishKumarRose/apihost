@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Task Manager API
+  description: A simple FastAPI-based Task Manager with JWT authentication.
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserCreate:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required:
+        - username
+        - password
+
+    UserOut:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        is_completed:
+          type: boolean
+
+    TaskCreate:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '200':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+
+  /login:
+    post:
+      summary: Login and get access token
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        '200':
+          description: Access token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+
+  /tasks:
+    get:
+      summary: Get list of tasks
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+
+    post:
+      summary: Create a task
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '200':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+
+  /tasks/{task_id}:
+    put:
+      summary: Update a task
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+
+    delete:
+      summary: Delete a task
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Task deleted
